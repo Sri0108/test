@@ -1,3 +1,13 @@
+# tests/test_app.py
+import os
+import sys
+
+# Add project root (/app in container) to PYTHONPATH
+CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
+PROJECT_ROOT = os.path.abspath(os.path.join(CURRENT_DIR, os.pardir))
+if PROJECT_ROOT not in sys.path:
+    sys.path.insert(0, PROJECT_ROOT)
+
 from app import app
 
 
