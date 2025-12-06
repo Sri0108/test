@@ -2,10 +2,10 @@ pipeline {
   agent any
 
   environment {
-    DOCKERHUB_CREDS = 'dockerhub-cred'                // Jenkins credentials ID
-    IMAGE_NAME      = "srikandala/python-falsk-test" // Change if you want
-    HOST_PORT       = "8081"                          // Port on host
-    CONTAINER_PORT  = "8000"                          // Port inside container
+    DOCKERHUB_CREDS = 'dockerhub-cred'                 // Jenkins credentials ID for Docker Hub
+    IMAGE_NAME      = "srikandala/python-falsk-test"  // Docker image name
+    HOST_PORT       = "8081"                           // Port on host
+    CONTAINER_PORT  = "8000"                           // Port inside container
   }
 
   stages {
@@ -61,21 +61,21 @@ pipeline {
       steps {
         echo "Running container locally on host port ${env.HOST_PORT}"
         sh """
-          # Clean old container if exists
-          docker rm -f python-static-${env.BUILD_NUMBER} || true
+          echo "Cleaning up any existing python-static-* containers..."
+          docker ps -a --filter "name=python-static-" -q | xargs -r docker rm -f
 
-          # Run the new container
-          docker run -d --name python-static-${env.BUILD_NUMBER} \
-            -p ${HOST_PORT}:${CONTAINER_PORT} \
+          echo "Starting new container for this build..."
+          docker run -d --name python-static-${env.BUILD_NUMBER} \\
+            -p ${HOST_PORT}:${CONTAINER_PORT} \\
             ${IMAGE_NAME}:${BUILD_NUMBER}
 
           sleep 3
 
           echo "Hitting http://localhost:${HOST_PORT}/"
-          curl -sSf http://localhost:${HOST_PORT}/ | head -n 5
+          curl -sSf http://localhost:${HOST_PORT}/ | head -n 5 || (echo "Main page check failed" && exit 1)
 
           echo "Hitting http://localhost:${HOST_PORT}/health"
-          curl -sSf http://localhost:${HOST_PORT}/health
+          curl -sSf http://localhost:${HOST_PORT}/health || (echo "Health check failed" && exit 1)
         """
       }
     }
