@@ -5,7 +5,8 @@ app = Flask(__name__)
 
 @app.route("/")
 def index():
-    return "Hello from Python Static Site!", 200
+    # Response should match what your test expects
+    return "testing pr", 200
 
 
 @app.route("/health")
